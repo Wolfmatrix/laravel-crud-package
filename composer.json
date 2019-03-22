@@ -1,0 +1,30 @@
+{
+    "name": "wolfmatrix/laravelcrud",
+    "description": "Laravel Crud Package",
+    "authors": [
+        {
+            "name": "Krishna Chaudhary",
+            "email": "kiszna9917@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=7.0",
+        "laravel-doctrine/orm": "^1.4",
+        "pagerfanta/pagerfanta": "^2.1",
+        "guzzlehttp/guzzle": "^6.3",
+        "barryvdh/laravel-form-bridge": "^0.4.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Wolfmatrix\\LaravelCrud\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Wolfmatrix\\LaravelCrud\\LaravelCrudServiceProvider"
+            ]
+        }
+    }
+}
