@@ -7,6 +7,7 @@ use Barryvdh\Form\CreatesForms;
 use Barryvdh\Form\ValidatesForms;
 use Doctrine\ORM\EntityManager;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Wolfmatrix\LaravelCrud\Events\PatchResourceEvent;
 use Wolfmatrix\LaravelCrud\Events\SaveResourceEvent;
 use Wolfmatrix\LaravelCrud\Events\DeleteResourceEvent;
@@ -70,7 +71,7 @@ class BaseApiController extends Controller
             if (!$form->isValid()) {
                 $error = $this->formHelper->getErrorsFromForm($form);
 
-                return $error;
+                return \Response::json($error, Response::HTTP_BAD_REQUEST);
             }
             $this->em->persist($entity);
             $this->em->flush();
@@ -83,7 +84,7 @@ class BaseApiController extends Controller
         }
 
 
-        return [$entity->toArray()];
+        return \Response::json([$entity->toArray()], ($updateFlag ? Response::HTTP_OK : Response::HTTP_CREATED));
     }
 
     public function detailResource(Request $request)
@@ -92,7 +93,7 @@ class BaseApiController extends Controller
 
         $entity = $this->em->getRepository($namespace)->find(array_pop($urlParts));
 
-        return [$entity->toArray()];
+        return \Response::json([$entity->toArray()], Response::HTTP_OK);
     }
 
     public function deleteResource(Request $request)
@@ -107,7 +108,7 @@ class BaseApiController extends Controller
 
         event(new DeleteResourceEvent(self::DELETE, $entityName, $oldEntity));
 
-        return [null];
+        return \Response::json([null], Response::HTTP_NO_CONTENT);
 
     }
 
@@ -124,7 +125,7 @@ class BaseApiController extends Controller
             ->getResults()
         ;
 
-        return [$data];
+        return \Response::json([$data], Response::HTTP_OK);
     }
 
     public function patchResource (Request $request)
@@ -164,7 +165,7 @@ class BaseApiController extends Controller
 
         event(new PatchResourceEvent(self::PATCH, $entityName, $name ,$entity, $oldEntity));
 
-        return [$entity->toArray()];
+        return \Response::json([$entity->toArray()], Response::HTTP_OK);
 
     }
 }
