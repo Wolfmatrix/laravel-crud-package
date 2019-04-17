@@ -11,6 +11,7 @@ use Illuminate\Http\Response;
 use Wolfmatrix\LaravelCrud\Events\PatchResourceEvent;
 use Wolfmatrix\LaravelCrud\Events\SaveResourceEvent;
 use Wolfmatrix\LaravelCrud\Events\DeleteResourceEvent;
+use Wolfmatrix\LaravelCrud\Events\UnsetFormFieldEvent;
 use Wolfmatrix\LaravelCrud\Services\FormHelper;
 
 class BaseApiController extends Controller
@@ -78,9 +79,9 @@ class BaseApiController extends Controller
         }
 
         if($updateFlag){
-            event(new SaveResourceEvent(self::UPDATE, $entityName, $entity, $oldEntity));
+            event(new SaveResourceEvent(self::UPDATE, $entityName, $entity, $requestedBody, $oldEntity));
         } else {
-            event(new SaveResourceEvent(self::CREATE, $entityName, $entity));
+            event(new SaveResourceEvent(self::CREATE, $entityName, $entity, $requestedBody));
         }
 
 

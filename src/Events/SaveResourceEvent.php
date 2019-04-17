@@ -20,6 +20,8 @@ class SaveResourceEvent
 
     public $entity;
 
+    public $requestedBody;
+
     public $oldEntity;
 
     /**
@@ -27,11 +29,12 @@ class SaveResourceEvent
      *
      * @return void
      */
-    public function __construct($action, $entityType, $entity, $oldEntity = null)
+    public function __construct($action, $entityType, $entity, $requestedBody = null, $oldEntity = null)
     {
         $this->action = $action;
         $this->entityType = $entityType;
         $this->entity = $entity;
+        $this->requestedBody = $requestedBody;
         $this->oldEntity = $oldEntity;
     }
 
