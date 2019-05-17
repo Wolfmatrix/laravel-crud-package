@@ -42,6 +42,10 @@ class BaseApiController extends Controller
         $flipUrlParts = array_flip($urlParts);
         $resource = array_search(2, $flipUrlParts);
         $entityName = (ucwords(rtrim($resource, "s")));
+        if(substr($resource, -3) == 'ies') {
+            $pos = strpos($resource, 'ies');
+            $entityName = ucwords(substr_replace($resource, 'y', $pos));
+        }
         $namespace = "App\\Entities\\$entityName";
 
         return [$urlParts, $entityName, $namespace];
