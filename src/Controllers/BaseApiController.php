@@ -11,7 +11,6 @@ use Illuminate\Http\Response;
 use Wolfmatrix\LaravelCrud\Events\PatchResourceEvent;
 use Wolfmatrix\LaravelCrud\Events\SaveResourceEvent;
 use Wolfmatrix\LaravelCrud\Events\DeleteResourceEvent;
-use Wolfmatrix\LaravelCrud\Events\UnsetFormFieldEvent;
 use Wolfmatrix\LaravelCrud\Services\FormHelper;
 
 class BaseApiController extends Controller
@@ -39,12 +38,23 @@ class BaseApiController extends Controller
     public function parseUrl ($pathInfo)
     {
         $urlParts = array_filter(explode("/", $pathInfo));
-        $flipUrlParts = array_flip($urlParts);
-        $resource = array_search(2, $flipUrlParts);
-        $entityName = (ucwords(rtrim($resource, "s")));
-        if(substr($resource, -3) == 'ies') {
-            $pos = strpos($resource, 'ies');
-            $entityName = ucwords(substr_replace($resource, 'y', $pos));
+
+        if(sizeof($urlParts) > 3) {
+            $resource = array_pop($urlParts);
+
+        } else {
+            $flipUrlParts = array_flip($urlParts);
+            $resource = array_search(2, $flipUrlParts);
+
+        }
+
+        $ucWord = ucwords($resource,'-');
+        $pregReplace = preg_replace("/[^a-zA-Z]/", '', $ucWord);
+        $entityName = (ucwords(rtrim($pregReplace, "s")));
+        if(substr($pregReplace, -3) == 'ies') {
+            $pos = strpos($pregReplace, 'ies');
+            $entityName = substr_replace($pregReplace, 'y', $pos);
+
         }
         $namespace = "App\\Entities\\$entityName";
 
@@ -56,7 +66,7 @@ class BaseApiController extends Controller
         list($urlParts, $entityName, $namespace) = $this->parseUrl($request->getPathInfo());
         $requestedBody = json_decode($request->getContent(), 1);
 
-        if (sizeof($urlParts ) > 2) {
+        if (sizeof($urlParts ) > 4) {
             $updateFlag = true;
             $entityId = array_pop($urlParts);
             $entity = $this->em->getRepository($namespace)->find($entityId);
@@ -69,8 +79,22 @@ class BaseApiController extends Controller
         }
 
         $formNameSpace = "App\\Forms\\{$entityName}Type";
-        $form = $this->createForm($formNameSpace, $entity, ['id' => $entityId]);
-        $form->submit($requestedBody, $updateFlag);
+        $form = $this->createForm($formNameSpace, $entity, ['id' => $entityId, 'em' => $this->em]);
+
+        $flattenRequestBody = [];
+
+        array_walk(
+            $requestedBody,
+            function($item, $key) use (&$flattenRequestBody) {
+                if(is_array($item)) {
+                    $flattenRequestBody[$key] = $item['id'];
+                } else {
+                    $flattenRequestBody[$key] = $item;
+                }
+            }
+        );
+
+        $form->submit($flattenRequestBody, $updateFlag);
 
         if ($form->isSubmitted()) {
             if (!$form->isValid()) {
