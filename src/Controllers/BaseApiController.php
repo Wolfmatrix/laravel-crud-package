@@ -56,6 +56,8 @@ class BaseApiController extends Controller
             $pos = strpos($pregReplace, 'ies');
             $entityName = substr_replace($pregReplace, 'y', $pos);
 
+        } elseif (substr($pregReplace, -2) == 'es') {
+            $entityName = ucwords(substr($pregReplace, 0, -2));
         }
         $namespace = "App\\Entities\\$entityName";
 
