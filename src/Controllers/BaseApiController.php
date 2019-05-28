@@ -40,7 +40,8 @@ class BaseApiController extends Controller
         $urlParts = array_filter(explode("/", $pathInfo));
 
         if(sizeof($urlParts) > 3) {
-            $resource = array_pop($urlParts);
+            $flipUrlParts = array_flip($urlParts);
+            $resource = array_search(4, $flipUrlParts);
 
         } else {
             $flipUrlParts = array_flip($urlParts);
