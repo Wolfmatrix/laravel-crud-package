@@ -69,13 +69,33 @@ class BaseApiController extends Controller
         list($urlParts, $entityName, $namespace) = $this->parseUrl($request->getPathInfo());
         $requestedBody = json_decode($request->getContent(), 1);
 
-        if (sizeof($urlParts ) > 4) {
+        if (sizeof($urlParts ) > 3 ) {
+            $parentResource = $urlParts[2];
+            $parentEntity = rtrim($parentResource, 's');
+            if (substr($parentResource, -3 == 'ies')) {
+                $pos = strpos($parentResource, 'ies');
+                $parentEntity = substr_replace($parentResource, 'y', $pos);
+            } elseif (substr($parentResource, -3 == 'ses')) {
+                $parentEntity = substr($parentResource, 0, -2);
+            }
+
+            if(!isset($requestedBody[$parentEntity])){
+                return \Response::json(null, Response::HTTP_FORBIDDEN);
+            }elseif (!isset($requestedBody[$parentEntity]['id'])){
+                return \Response::json(null, Response::HTTP_FORBIDDEN);
+            }
+            else if(isset($requestedBody[$parentEntity]['id']) && $requestedBody[$parentEntity]['id'] != $urlParts[3]){
+                return \Response::json(null, Response::HTTP_FORBIDDEN);
+            }
+        }
+
+        if (sizeof($urlParts ) == 3 || sizeof($urlParts ) == 5 ) {
             $updateFlag = true;
             $entityId = array_pop($urlParts);
             $entity = $this->em->getRepository($namespace)->find($entityId);
             $oldEntity  = clone $entity;
 
-        } else {
+        } elseif(sizeof($urlParts) == 2  || sizeof($urlParts ) == 4) {
             $entity = new $namespace;
             $updateFlag = false;
             $entityId = null;
@@ -125,6 +145,22 @@ class BaseApiController extends Controller
 
         $entity = $this->em->getRepository($namespace)->find(array_pop($urlParts));
 
+        $parentResource = $urlParts[2];
+        $ucWord = ucwords($parentResource,'-');
+        $pregReplace = preg_replace("/[^a-zA-Z]/", '', $ucWord);
+        $parentEntityName = (ucwords(rtrim($pregReplace, "s")));
+        if(substr($pregReplace, -3) == 'ies') {
+            $pos = strpos($pregReplace, 'ies');
+            $parentEntityName = substr_replace($pregReplace, 'y', $pos);
+
+        } elseif (substr($pregReplace, -3) == 'ses') {
+            $parentEntityName = ucwords(substr($pregReplace, 0, -2));
+        }
+
+        if ($urlParts[3] != $entity->{"get".$parentEntityName}()->getId()) {
+            return \Response::json(null, Response::HTTP_NOT_FOUND);
+        }
+
         return \Response::json([$entity->toArray()], Response::HTTP_OK);
     }
 
@@ -133,6 +169,23 @@ class BaseApiController extends Controller
         list($urlParts, $entityName, $namespace) = $this->parseUrl($request->getPathInfo());
         $entityId = array_pop($urlParts);
         $entity = $this->em->getRepository($namespace)->find($entityId);
+
+        $parentResource = $urlParts[2];
+        $ucWord = ucwords($parentResource,'-');
+        $pregReplace = preg_replace("/[^a-zA-Z]/", '', $ucWord);
+        $parentEntityName = (ucwords(rtrim($pregReplace, "s")));
+        if(substr($pregReplace, -3) == 'ies') {
+            $pos = strpos($pregReplace, 'ies');
+            $parentEntityName = substr_replace($pregReplace, 'y', $pos);
+
+        } elseif (substr($pregReplace, -3) == 'ses') {
+            $parentEntityName = ucwords(substr($pregReplace, 0, -2));
+        }
+
+        if ($urlParts[3] != $entity->{"get".$parentEntityName}()->getId()) {
+            return \Response::json(null, Response::HTTP_NOT_FOUND);
+        }
+
         $oldEntity = clone $entity;
 
         $this->em->remove($entity);
@@ -147,7 +200,25 @@ class BaseApiController extends Controller
     public function listResource (Request $request)
     {
         list($urlParts, $entityName, $namespace) = $this->parseUrl($request->getPathInfo());
+
+        $extendedResource = $urlParts[2];
+        $ucWord = ucwords($extendedResource,'-');
+        $pregReplace = preg_replace("/[^a-zA-Z]/", '', $ucWord);
+        $extendedEntityName = (ucwords(rtrim($pregReplace, "s")));
+
+        if(substr($pregReplace, -3) == 'ies') {
+            $pos = strpos($pregReplace, 'ies');
+            $extendedEntityName = substr_replace($pregReplace, 'y', $pos);
+
+        } elseif (substr($pregReplace, -3) == 'ses') {
+            $extendedEntityName = ucwords(substr($pregReplace, 0, -2));
+        }
+        $extendedNamespace = "App\\Entities\\$extendedEntityName";
+        $extendedEntity = $this->em->getRepository($extendedNamespace)->find($urlParts[3]);
+
         $data = $this->em->getRepository($namespace)
+            ->setParam('entityId', $extendedEntity->getId())
+            ->loadExtendBuilder()
             ->searchFilterSort(
                 $request->get('search'),
                 $request->get('filter'),
