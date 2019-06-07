@@ -200,6 +200,21 @@ class BaseApiController extends Controller
     public function listResource (Request $request)
     {
         list($urlParts, $entityName, $namespace) = $this->parseUrl($request->getPathInfo());
+        $data = $this->em->getRepository($namespace)
+            ->searchFilterSort(
+                $request->get('search'),
+                $request->get('filter'),
+                $request->get('sort')
+            )
+            ->setPage($request->get('page', 1), $request->get('pageSize'))
+            ->getResults()
+        ;
+        return \Response::json([$data], Response::HTTP_OK);
+    }
+
+    public function listSubResource (Request $request)
+    {
+        list($urlParts, $entityName, $namespace) = $this->parseUrl($request->getPathInfo());
 
         $extendedResource = $urlParts[2];
         $ucWord = ucwords($extendedResource,'-');
