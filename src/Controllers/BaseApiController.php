@@ -72,10 +72,10 @@ class BaseApiController extends Controller
         if (sizeof($urlParts ) > 3 ) {
             $parentResource = $urlParts[2];
             $parentEntity = rtrim($parentResource, 's');
-            if (substr($parentResource, -3 == 'ies')) {
+            if (substr($parentResource, -3) == 'ies') {
                 $pos = strpos($parentResource, 'ies');
                 $parentEntity = substr_replace($parentResource, 'y', $pos);
-            } elseif (substr($parentResource, -3 == 'ses')) {
+            } elseif (substr($parentResource, -3) == 'ses') {
                 $parentEntity = substr($parentResource, 0, -2);
             }
 
