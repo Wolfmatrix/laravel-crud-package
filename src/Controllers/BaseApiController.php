@@ -261,7 +261,7 @@ class BaseApiController extends Controller
         $keys = array_keys($requestedBody);
         $name = array_pop($keys);
         $formNameSpace = "App\\Forms\\{$entityName}Type";
-        $form = $this->createForm($formNameSpace, $entity, ['id' => $entityId]);
+        $form = $this->createForm($formNameSpace, $entity, ['id' => $entityId, 'em' => $this->em]);
 
 
         foreach ($form->all() as $fields) {
