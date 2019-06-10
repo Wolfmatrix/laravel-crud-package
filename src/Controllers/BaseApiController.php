@@ -145,20 +145,22 @@ class BaseApiController extends Controller
 
         $entity = $this->em->getRepository($namespace)->find(array_pop($urlParts));
 
-        $parentResource = $urlParts[2];
-        $ucWord = ucwords($parentResource,'-');
-        $pregReplace = preg_replace("/[^a-zA-Z]/", '', $ucWord);
-        $parentEntityName = (ucwords(rtrim($pregReplace, "s")));
-        if(substr($pregReplace, -3) == 'ies') {
-            $pos = strpos($pregReplace, 'ies');
-            $parentEntityName = substr_replace($pregReplace, 'y', $pos);
+        if (sizeof($urlParts) > 3) {
+            $parentResource = $urlParts[2];
+            $ucWord = ucwords($parentResource,'-');
+            $pregReplace = preg_replace("/[^a-zA-Z]/", '', $ucWord);
+            $parentEntityName = (ucwords(rtrim($pregReplace, "s")));
+            if(substr($pregReplace, -3) == 'ies') {
+                $pos = strpos($pregReplace, 'ies');
+                $parentEntityName = substr_replace($pregReplace, 'y', $pos);
 
-        } elseif (substr($pregReplace, -3) == 'ses') {
-            $parentEntityName = ucwords(substr($pregReplace, 0, -2));
-        }
+            } elseif (substr($pregReplace, -3) == 'ses') {
+                $parentEntityName = ucwords(substr($pregReplace, 0, -2));
+            }
 
-        if ($urlParts[3] != $entity->{"get".$parentEntityName}()->getId()) {
-            return \Response::json(null, Response::HTTP_NOT_FOUND);
+            if ($urlParts[3] != $entity->{"get".$parentEntityName}()->getId()) {
+                return \Response::json(null, Response::HTTP_NOT_FOUND);
+            }
         }
 
         return \Response::json([$entity->toArray()], Response::HTTP_OK);
@@ -170,20 +172,22 @@ class BaseApiController extends Controller
         $entityId = array_pop($urlParts);
         $entity = $this->em->getRepository($namespace)->find($entityId);
 
-        $parentResource = $urlParts[2];
-        $ucWord = ucwords($parentResource,'-');
-        $pregReplace = preg_replace("/[^a-zA-Z]/", '', $ucWord);
-        $parentEntityName = (ucwords(rtrim($pregReplace, "s")));
-        if(substr($pregReplace, -3) == 'ies') {
-            $pos = strpos($pregReplace, 'ies');
-            $parentEntityName = substr_replace($pregReplace, 'y', $pos);
+        if (sizeof($urlParts) > 3) {
+            $parentResource = $urlParts[2];
+            $ucWord = ucwords($parentResource,'-');
+            $pregReplace = preg_replace("/[^a-zA-Z]/", '', $ucWord);
+            $parentEntityName = (ucwords(rtrim($pregReplace, "s")));
+            if(substr($pregReplace, -3) == 'ies') {
+                $pos = strpos($pregReplace, 'ies');
+                $parentEntityName = substr_replace($pregReplace, 'y', $pos);
 
-        } elseif (substr($pregReplace, -3) == 'ses') {
-            $parentEntityName = ucwords(substr($pregReplace, 0, -2));
-        }
+            } elseif (substr($pregReplace, -3) == 'ses') {
+                $parentEntityName = ucwords(substr($pregReplace, 0, -2));
+            }
 
-        if ($urlParts[3] != $entity->{"get".$parentEntityName}()->getId()) {
-            return \Response::json(null, Response::HTTP_NOT_FOUND);
+            if ($urlParts[3] != $entity->{"get".$parentEntityName}()->getId()) {
+                return \Response::json(null, Response::HTTP_NOT_FOUND);
+            }
         }
 
         $oldEntity = clone $entity;
