@@ -144,6 +144,9 @@ class BaseApiController extends Controller
         list($urlParts, $entityName, $namespace) = $this->parseUrl($request->getPathInfo());
 
         $entity = $this->em->getRepository($namespace)->find(array_pop($urlParts));
+        if (!$entity) {
+            return \Response::json(null, Response::HTTP_NOT_FOUND);
+        }
 
         if (sizeof($urlParts) > 3) {
             $parentResource = $urlParts[2];
@@ -171,6 +174,9 @@ class BaseApiController extends Controller
         list($urlParts, $entityName, $namespace) = $this->parseUrl($request->getPathInfo());
         $entityId = array_pop($urlParts);
         $entity = $this->em->getRepository($namespace)->find($entityId);
+        if (!$entity) {
+            return \Response::json(null, Response::HTTP_NOT_FOUND);
+        }
 
         if (sizeof($urlParts) > 3) {
             $parentResource = $urlParts[2];
@@ -234,6 +240,10 @@ class BaseApiController extends Controller
         }
         $extendedNamespace = "App\\Entities\\$extendedEntityName";
         $extendedEntity = $this->em->getRepository($extendedNamespace)->find($urlParts[3]);
+
+        if (!$extendedEntity) {
+            return \Response::json(null, Response::HTTP_NOT_FOUND);
+        }
 
         $data = $this->em->getRepository($namespace)
             ->setParam('entityId', $extendedEntity->getId())
