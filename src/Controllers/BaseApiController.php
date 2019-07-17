@@ -71,12 +71,14 @@ class BaseApiController extends Controller
 
         if (sizeof($urlParts ) > 3 ) {
             $parentResource = $urlParts[2];
-            $parentEntity = rtrim($parentResource, 's');
-            if (substr($parentResource, -3) == 'ies') {
-                $pos = strpos($parentResource, 'ies');
-                $parentEntity = substr_replace($parentResource, 'y', $pos);
-            } elseif (substr($parentResource, -3) == 'ses') {
-                $parentEntity = substr($parentResource, 0, -2);
+            $ucWord = ucwords($parentResource,'-');
+            $pregReplace = preg_replace("/[^a-zA-Z]/", '', $ucWord);
+            $parentEntity = lcfirst(rtrim($pregReplace, 's'));
+            if (substr($pregReplace, -3) == 'ies') {
+                $pos = strpos($pregReplace, 'ies');
+                $parentEntity = lcfirst(substr_replace($pregReplace, 'y', $pos));
+            } elseif (substr($pregReplace, -3) == 'ses') {
+                $parentEntity = lcfirst(substr($pregReplace, 0, -2));
             }
 
             if(!isset($requestedBody[$parentEntity])){
