@@ -106,7 +106,51 @@ class UserRepository extends BaseEntity
 ```
  
  ### Create FormType
- Create UserType.php form at **app/Forms**
+ Create FormType at **app/Forms**
+ 
+ For example, create a user form i,e. UserType.php
+ ```
+ <?php
+
+namespace App\Forms;
+
+use App\Entities\User;
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\EmailType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+
+class UserType extends AbstractType
+{
+    public function buildForm(FormBuilderInterface $builder, array $options)
+    {
+        $userId = $options['id'] ? ','.$options['id'] : '';
+        $em = $options['em'] ? $options['em'] : null;
+
+        $builder
+            ->add('email', EmailType::class, [
+                'rules' => 'required|unique:App\Entities\User,email'.$userId,
+            ])
+            ->add('name', TextType::class, [
+                'rules' => 'required,
+            ])
+            ->add('save', SubmitType::class)
+        ;
+    }
+
+    public function configureOptions(OptionsResolver $resolver)
+    {
+        $resolver->setDefaults(array(
+            'data_class'      => User::class,
+            'csrf_protection' => false,
+            'id' => null,
+            'em' => null
+        ));
+    }
+}
+ ```
  
  ### Create Routes
  Create routes for crud operations in **routes/api.php**. Before creating routes, 
@@ -121,6 +165,10 @@ class UserRepository extends BaseEntity
  Route::get('users', 'Wolfmatrix\LaravelCrud\Controllers\BaseApiController@listResource');
  Route::get('users/{user}', 'Wolfmatrix\LaravelCrud\Controllers\BaseApiController@detailResource');
  Route::delete('users/{user}', 'Wolfmatrix\LaravelCrud\Controllers\BaseApiController@deleteResource');
+ ```
+ If the url of your api contains sub-url, then for list api use action name as **listSubResource** i,e.
+ ```
+ Route::get('users/{user}/roles', 'Wolfmatrix\LaravelCrud\Controllers\BaseApiController@listSubResource');
  ```
  If you want to write route for the default controller, use leading slash '/' before starting url. i,e.
  ```
