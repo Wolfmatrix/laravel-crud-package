@@ -116,7 +116,13 @@ class BaseApiController extends Controller
                         $flattenRequestBody[$key] = $item['id'];
                     } else {
                         array_walk($item, function ($i, $k) use (&$flattenRequestBody, $key) {
-                            $flattenRequestBody[$key][$k] = $i['id'];
+                            if (array_key_exists('id', $i)) {
+                                $flattenRequestBody[$key][$k] = $i['id'];
+                            } else {
+                                array_walk($i, function ($it, $ke) use (&$flattenRequestBody, $key, $k) {
+                                    $flattenRequestBody[$key][$k][$ke] = $it['id'];
+                                });
+                            }
                         });
                     }
                 } else {
