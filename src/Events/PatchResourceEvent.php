@@ -24,15 +24,18 @@ class PatchResourceEvent
 
     public $patchedField;
 
+    public $requestedBody;
+
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct($action, $entityType, $patchedField ,$entity, $oldEntity)
+    public function __construct($action, $entityType, $requestedBody, $patchedField ,$entity, $oldEntity)
     {
         $this->action = $action;
         $this->entityType = $entityType;
+        $this->requestedBody = $requestedBody;
         $this->patchedField = $patchedField;
         $this->entity = $entity;
         $this->oldEntity = $oldEntity;

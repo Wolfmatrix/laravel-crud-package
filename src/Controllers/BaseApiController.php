@@ -313,7 +313,7 @@ class BaseApiController extends Controller
             $this->em->flush();
         }
 
-        event(new PatchResourceEvent(self::PATCH, $entityName, $name ,$entity, $oldEntity));
+        event(new PatchResourceEvent(self::PATCH, $entityName, $requestedBody, $name ,$entity, $oldEntity));
 
         return \Response::json([$entity->toArray()], Response::HTTP_OK);
 
