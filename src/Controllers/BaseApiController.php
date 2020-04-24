@@ -20,7 +20,7 @@ class BaseApiController extends Controller
     /**
      * @var EntityManager
      */
-    private $em;
+    protected $em;
 
     protected $formHelper;
 
