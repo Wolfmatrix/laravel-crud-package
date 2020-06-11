@@ -39,16 +39,17 @@ class BaseApiController extends Controller
     {
         $urlParts = array_filter(explode("/", $pathInfo));
 
-        if(sizeof($urlParts) > 3) {
+        if(sizeof($urlParts) > 4) {
             $flipUrlParts = array_flip($urlParts);
-            $resource = array_search(4, $flipUrlParts);
+            $resource = array_search(5, $flipUrlParts);
 
         } else {
             $flipUrlParts = array_flip($urlParts);
-            $resource = array_search(2, $flipUrlParts);
+            $resource = array_search(3, $flipUrlParts);
 
         }
 
+        $folderName = ucwords(array_search(2, $flipUrlParts));
         $ucWord = ucwords($resource,'-');
         $pregReplace = preg_replace("/[^a-zA-Z]/", '', $ucWord);
         $entityName = (ucwords(rtrim($pregReplace, "s")));
@@ -59,18 +60,18 @@ class BaseApiController extends Controller
         } elseif (substr($pregReplace, -3) == 'ses') {
             $entityName = ucwords(substr($pregReplace, 0, -2));
         }
-        $namespace = "App\\Entities\\$entityName";
+        $namespace = "App\\Entities\\$folderName\\$entityName";
 
-        return [$urlParts, $entityName, $namespace];
+        return [$urlParts, $entityName, $namespace, $folderName];
     }
 
     public function saveResource (Request $request)
     {
-        list($urlParts, $entityName, $namespace) = $this->parseUrl($request->getPathInfo());
+        list($urlParts, $entityName, $namespace, $folderName) = $this->parseUrl($request->getPathInfo());
         $requestedBody = json_decode($request->getContent(), 1);
 
-        if (sizeof($urlParts ) > 3 ) {
-            $parentResource = $urlParts[2];
+        if (sizeof($urlParts ) > 4 ) {
+            $parentResource = $urlParts[3];
             $ucWord = ucwords($parentResource,'-');
             $pregReplace = preg_replace("/[^a-zA-Z]/", '', $ucWord);
             $parentEntity = lcfirst(rtrim($pregReplace, 's'));
@@ -86,24 +87,24 @@ class BaseApiController extends Controller
             }elseif (!isset($requestedBody[$parentEntity]['id'])){
                 return \Response::json(null, Response::HTTP_FORBIDDEN);
             }
-            else if(isset($requestedBody[$parentEntity]['id']) && $requestedBody[$parentEntity]['id'] != $urlParts[3]){
+            else if(isset($requestedBody[$parentEntity]['id']) && $requestedBody[$parentEntity]['id'] != $urlParts[4]){
                 return \Response::json(null, Response::HTTP_FORBIDDEN);
             }
         }
 
-        if (sizeof($urlParts ) == 3 || sizeof($urlParts ) == 5 ) {
+        if (sizeof($urlParts ) == 4 || sizeof($urlParts ) == 6 ) {
             $updateFlag = true;
             $entityId = array_pop($urlParts);
             $entity = $this->em->getRepository($namespace)->find($entityId);
             $oldEntity  = clone $entity;
 
-        } elseif(sizeof($urlParts) == 2  || sizeof($urlParts ) == 4) {
+        } elseif(sizeof($urlParts) == 3  || sizeof($urlParts ) == 5) {
             $entity = new $namespace;
             $updateFlag = false;
             $entityId = null;
         }
 
-        $formNameSpace = "App\\Forms\\{$entityName}Type";
+        $formNameSpace = "App\\Forms\\$folderName\\{$entityName}Type";
         $form = $this->createForm($formNameSpace, $entity, ['id' => $entityId, 'em' => $this->em]);
 
         $flattenRequestBody = [];
@@ -168,8 +169,8 @@ class BaseApiController extends Controller
             return \Response::json(null, Response::HTTP_NOT_FOUND);
         }
 
-        if (sizeof($urlParts) > 3) {
-            $parentResource = $urlParts[2];
+        if (sizeof($urlParts) > 4) {
+            $parentResource = $urlParts[3];
             $ucWord = ucwords($parentResource,'-');
             $pregReplace = preg_replace("/[^a-zA-Z]/", '', $ucWord);
             $parentEntityName = (ucwords(rtrim($pregReplace, "s")));
@@ -181,7 +182,7 @@ class BaseApiController extends Controller
                 $parentEntityName = ucwords(substr($pregReplace, 0, -2));
             }
 
-            if ($urlParts[3] != $entity->{"get".$parentEntityName}()->getId()) {
+            if ($urlParts[4] != $entity->{"get".$parentEntityName}()->getId()) {
                 return \Response::json(null, Response::HTTP_NOT_FOUND);
             }
         }
@@ -198,8 +199,8 @@ class BaseApiController extends Controller
             return \Response::json(null, Response::HTTP_NOT_FOUND);
         }
 
-        if (sizeof($urlParts) > 3) {
-            $parentResource = $urlParts[2];
+        if (sizeof($urlParts) > 4) {
+            $parentResource = $urlParts[3];
             $ucWord = ucwords($parentResource,'-');
             $pregReplace = preg_replace("/[^a-zA-Z]/", '', $ucWord);
             $parentEntityName = (ucwords(rtrim($pregReplace, "s")));
@@ -211,7 +212,7 @@ class BaseApiController extends Controller
                 $parentEntityName = ucwords(substr($pregReplace, 0, -2));
             }
 
-            if ($urlParts[3] != $entity->{"get".$parentEntityName}()->getId()) {
+            if ($urlParts[4] != $entity->{"get".$parentEntityName}()->getId()) {
                 return \Response::json(null, Response::HTTP_NOT_FOUND);
             }
         }
@@ -244,9 +245,9 @@ class BaseApiController extends Controller
 
     public function listSubResource (Request $request)
     {
-        list($urlParts, $entityName, $namespace) = $this->parseUrl($request->getPathInfo());
+        list($urlParts, $entityName, $namespace, $folderName) = $this->parseUrl($request->getPathInfo());
 
-        $extendedResource = $urlParts[2];
+        $extendedResource = $urlParts[3];
         $ucWord = ucwords($extendedResource,'-');
         $pregReplace = preg_replace("/[^a-zA-Z]/", '', $ucWord);
         $extendedEntityName = (ucwords(rtrim($pregReplace, "s")));
@@ -258,8 +259,9 @@ class BaseApiController extends Controller
         } elseif (substr($pregReplace, -3) == 'ses') {
             $extendedEntityName = ucwords(substr($pregReplace, 0, -2));
         }
-        $extendedNamespace = "App\\Entities\\$extendedEntityName";
-        $extendedEntity = $this->em->getRepository($extendedNamespace)->find($urlParts[3]);
+
+        $extendedNamespace = "App\\Entities\\$folderName\\$extendedEntityName";
+        $extendedEntity = $this->em->getRepository($extendedNamespace)->find($urlParts[4]);
 
         if (!$extendedEntity) {
             return \Response::json(null, Response::HTTP_NOT_FOUND);
@@ -282,7 +284,7 @@ class BaseApiController extends Controller
 
     public function patchResource (Request $request)
     {
-        list($urlParts, $entityName, $namespace) = $this->parseUrl($request->getPathInfo());
+        list($urlParts, $entityName, $namespace, $folderName) = $this->parseUrl($request->getPathInfo());
         $requestedBody = json_decode($request->getContent(), 1);
         $entityId = array_pop($urlParts);
         $entity = $this->em->getRepository($namespace)->find($entityId);
@@ -294,7 +296,7 @@ class BaseApiController extends Controller
 
         $keys = array_keys($requestedBody);
         $name = array_pop($keys);
-        $formNameSpace = "App\\Forms\\{$entityName}Type";
+        $formNameSpace = "App\\Forms\\$folderName\\{$entityName}Type";
         $form = $this->createForm($formNameSpace, $entity, ['id' => $entityId, 'em' => $this->em]);
 
 
