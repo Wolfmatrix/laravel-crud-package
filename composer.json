@@ -10,10 +10,10 @@
     "minimum-stability": "dev",
     "require": {
         "php": ">=7.0",
-        "laravel-doctrine/orm": "^1.4",
-        "pagerfanta/pagerfanta": "^2.1",
-        "guzzlehttp/guzzle": "^6.3",
-        "barryvdh/laravel-form-bridge": "^0.4.5"
+        "laravel-doctrine/orm": "^1.6",
+        "pagerfanta/pagerfanta": "^2.3",
+        "guzzlehttp/guzzle": "^6.5",
+        "barryvdh/laravel-form-bridge": "^0.5.1"
     },
     "autoload": {
         "psr-4": {
